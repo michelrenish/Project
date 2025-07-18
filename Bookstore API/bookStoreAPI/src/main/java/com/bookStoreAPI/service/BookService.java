@@ -1,0 +1,66 @@
+package com.bookStoreAPI.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.bookStoreAPI.entity.Book;
+import com.bookStoreAPI.repository.BookRepository;
+
+import jakarta.persistence.criteria.Predicate;
+
+@Service
+public class BookService {
+    private final BookRepository bookRepository;
+
+    public BookService(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
+
+    public List<Book> getAllBooks() {
+        return bookRepository.findAll();
+    }
+
+    public Optional<Book> getBookById(Long id) {
+        return bookRepository.findById(id);
+    }
+
+    public Book createBook(Book book) {
+        return bookRepository.save(book);
+    }
+
+    public Book updateBook(Long id, Book updatedBook) {
+        return bookRepository.findById(id)
+                .map(book -> {
+                    book.setTitle(updatedBook.getTitle());
+                    book.setPrice(updatedBook.getPrice());
+                    book.setAuthor(updatedBook.getAuthor());
+                    return bookRepository.save(book);
+                })
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+    }
+
+    public void deleteBook(Long id) {
+        bookRepository.deleteById(id);
+    }
+
+    public Page<Book> getBooksFiltered(String title, String authorName, int page, int size, Sort sort) {
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return bookRepository.findAll((root, query, cb) -> {
+            Predicate predicate = cb.conjunction();
+            if (title != null && !title.isEmpty()) {
+                predicate = cb.and(predicate, cb.like(root.get("title"), "%" + title + "%"));
+            }
+            if (authorName != null && !authorName.isEmpty()) {
+                predicate = cb.and(predicate, cb.like(root.get("author").get("name"), "%" + authorName + "%"));
+            }
+            return predicate;
+        }, pageable);
+    }
+}
