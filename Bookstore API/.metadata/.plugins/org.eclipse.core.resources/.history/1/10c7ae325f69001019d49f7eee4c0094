@@ -1,0 +1,81 @@
+package com.bookStoreAPI.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.bookStoreAPI.controller.AuthorController;
+import com.bookStoreAPI.entity.Book;
+import com.bookStoreAPI.exception.BookNotFoundExeption;
+import com.bookStoreAPI.repository.BookRepository;
+
+import jakarta.persistence.criteria.Predicate;
+
+@Service
+public class BookService {
+    private final BookRepository bookRepository;
+    @Autowired
+    AuthorController authorController;
+    
+
+    public BookService(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
+
+    public List<Book> getAllBooks() {
+        return bookRepository.findAll();
+    }
+
+    public Optional<Book> getBookById(Long id) {
+    	Optional<Book> book =bookRepository.findById(id);
+    	if(book.isPresent()) {
+        return bookRepository.findById(id);
+    	}
+    	else {
+    		throw new BookNotFoundExeption();
+    	}
+    }
+
+    public Book createBook(Book book) {
+        
+         Long autherId =book.getAuthor().getId();
+         authorController.getAuthorById(autherId);
+         return bookRepository.save(book).authorController.getAuthorById(autherId);
+    }
+
+    public Book updateBook(Long id, Book updatedBook) {
+        return bookRepository.findById(id)
+                .map(book -> {
+                    book.setTitle(updatedBook.getTitle());
+                    book.setPrice(updatedBook.getPrice());
+                    book.setAuthor(updatedBook.getAuthor());
+                    return bookRepository.save(book);
+                })
+                .orElseThrow(() -> new BookNotFoundExeption());
+    }
+
+    public void deleteBook(Long id) {
+        bookRepository.deleteById(id);
+    }
+
+    public Page<Book> getBooksFiltered(String title, String authorName, int page, int size, Sort sort) {
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return bookRepository.findAll((root, query, cb) -> {
+            Predicate predicate = cb.conjunction();
+            if (title != null && !title.isEmpty()) {
+                predicate = cb.and(predicate, cb.like(root.get("title"), "%" + title + "%"));
+            }
+            if (authorName != null && !authorName.isEmpty()) {
+                predicate = cb.and(predicate, cb.like(root.get("author").get("name"), "%" + authorName + "%"));
+            }
+            return predicate;
+        }, pageable);
+    }
+}

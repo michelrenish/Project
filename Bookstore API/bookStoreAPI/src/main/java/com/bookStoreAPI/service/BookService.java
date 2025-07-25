@@ -9,8 +9,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.bookStoreAPI.entity.Author;
 import com.bookStoreAPI.entity.Book;
+import com.bookStoreAPI.exception.AuthorIdNotFoundExeption;
 import com.bookStoreAPI.exception.BookNotFoundExeption;
+import com.bookStoreAPI.repository.AuthorRepository;
 import com.bookStoreAPI.repository.BookRepository;
 
 import jakarta.persistence.criteria.Predicate;
@@ -18,9 +21,12 @@ import jakarta.persistence.criteria.Predicate;
 @Service
 public class BookService {
     private final BookRepository bookRepository;
+    private final AuthorRepository authorRepository;
+    
 
-    public BookService(BookRepository bookRepository) {
+    public BookService(BookRepository bookRepository ,AuthorRepository authorRepository ) {
         this.bookRepository = bookRepository;
+        this.authorRepository=authorRepository;
     }
 
     public List<Book> getAllBooks() {
@@ -38,9 +44,18 @@ public class BookService {
     }
 
     public Book createBook(Book book) {
-        return bookRepository.save(book);
+    	Long authorId = book.getAuthor().getId();
+        Author author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new AuthorIdNotFoundExeption());
+        book.setAuthor(author);
+        Book savedBook = bookRepository.save(book);
+        return new Book(
+                savedBook.getId(),
+                savedBook.getTitle(),
+                savedBook.getPrice(),
+                savedBook.getAuthor()
+        );   
     }
-
     public Book updateBook(Long id, Book updatedBook) {
         return bookRepository.findById(id)
                 .map(book -> {
