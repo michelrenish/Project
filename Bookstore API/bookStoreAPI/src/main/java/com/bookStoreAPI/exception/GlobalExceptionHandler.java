@@ -12,5 +12,9 @@ public class GlobalExceptionHandler {
 	ResponseEntity AuthorIdNotFound(){
 		return new ResponseEntity("AuthorIdNotFound",HttpStatus.NOT_FOUND);		
 	}
+	@ExceptionHandler(BookNotFoundExeption.class)
+	ResponseEntity BookNotFound() {
+		return new ResponseEntity("BookNotFound",HttpStatus.NOT_FOUND);
+	}
 
 }

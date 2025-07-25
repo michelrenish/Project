@@ -1,5 +1,0 @@
-package com.bookStoreAPI.exception;
-
-public class GlobalExceptionHandler {
-
-}

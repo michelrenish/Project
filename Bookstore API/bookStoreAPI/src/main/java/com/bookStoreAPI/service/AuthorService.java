@@ -41,7 +41,7 @@ public class AuthorService {
                     author.setName(updatedAuthor.getName());
                     return authorRepository.save(author);
                 })
-                .orElseThrow(() -> new RuntimeException("Author not found"));
+                .orElseThrow(() -> new AuthorIdNotFoundExeption());
     }
 
     public void deleteAuthor(Long id) {

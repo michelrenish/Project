@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.bookStoreAPI.entity.Book;
+import com.bookStoreAPI.exception.BookNotFoundExeption;
 import com.bookStoreAPI.repository.BookRepository;
 
 import jakarta.persistence.criteria.Predicate;
@@ -27,7 +28,13 @@ public class BookService {
     }
 
     public Optional<Book> getBookById(Long id) {
+    	Optional<Book> book =bookRepository.findById(id);
+    	if(book.isPresent()) {
         return bookRepository.findById(id);
+    	}
+    	else {
+    		throw new BookNotFoundExeption();
+    	}
     }
 
     public Book createBook(Book book) {
@@ -42,7 +49,7 @@ public class BookService {
                     book.setAuthor(updatedBook.getAuthor());
                     return bookRepository.save(book);
                 })
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new BookNotFoundExeption());
     }
 
     public void deleteBook(Long id) {
