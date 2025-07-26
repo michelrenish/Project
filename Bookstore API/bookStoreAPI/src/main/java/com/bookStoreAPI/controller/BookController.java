@@ -53,14 +53,10 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    public Page<Book> searchBooks(
+    public List<Book> searchBooks(
             @RequestParam(required = false) String title,
-            @RequestParam(required = false) String authorName,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
-            @RequestParam(defaultValue = "id,asc") String[] sort) {
-
-        Sort sorting = Sort.by(Sort.Direction.fromString(sort[1]), sort[0]);
-        return bookService.getBooksFiltered(title, authorName, page, size, sorting);
+            @RequestParam(required = false) String authorName) {
+        return bookService.searchBooksByTitleAndAuthor(title, authorName);
     }
+
 }

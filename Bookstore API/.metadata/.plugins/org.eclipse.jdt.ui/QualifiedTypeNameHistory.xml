@@ -16,8 +16,12 @@
     <fullyQualifiedTypeName name="org.springframework.web.bind.annotation.ExceptionHandler"/>
     <fullyQualifiedTypeName name="org.springframework.http.ResponseEntity"/>
     <fullyQualifiedTypeName name="org.springframework.http.HttpStatus"/>
-    <fullyQualifiedTypeName name="com.bookStoreAPI.exception.AuthorIdNotFoundExeption"/>
     <fullyQualifiedTypeName name="java.util.Optional"/>
     <fullyQualifiedTypeName name="com.bookStoreAPI.entity.Book"/>
     <fullyQualifiedTypeName name="com.bookStoreAPI.exception.BookNotFoundExeption"/>
+    <fullyQualifiedTypeName name="com.bookStoreAPI.service.AuthorService"/>
+    <fullyQualifiedTypeName name="org.springframework.beans.factory.annotation.Autowired"/>
+    <fullyQualifiedTypeName name="com.bookStoreAPI.controller.AuthorController"/>
+    <fullyQualifiedTypeName name="com.bookStoreAPI.repository.AuthorRepository"/>
+    <fullyQualifiedTypeName name="com.bookStoreAPI.exception.AuthorIdNotFoundExeption"/>
 </qualifiedTypeNameHistroy>

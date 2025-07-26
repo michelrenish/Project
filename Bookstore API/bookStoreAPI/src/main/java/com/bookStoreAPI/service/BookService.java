@@ -71,18 +71,17 @@ public class BookService {
         bookRepository.deleteById(id);
     }
 
-    public Page<Book> getBooksFiltered(String title, String authorName, int page, int size, Sort sort) {
-        Pageable pageable = PageRequest.of(page, size, sort);
-
+    public List<Book> searchBooksByTitleAndAuthor(String title, String authorName) {
         return bookRepository.findAll((root, query, cb) -> {
             Predicate predicate = cb.conjunction();
             if (title != null && !title.isEmpty()) {
-                predicate = cb.and(predicate, cb.like(root.get("title"), "%" + title + "%"));
+                predicate = cb.and(predicate, cb.like(cb.lower(root.get("title")), "%" + title.toLowerCase() + "%"));
             }
             if (authorName != null && !authorName.isEmpty()) {
-                predicate = cb.and(predicate, cb.like(root.get("author").get("name"), "%" + authorName + "%"));
+                predicate = cb.and(predicate, cb.like(cb.lower(root.get("author").get("name")), "%" + authorName.toLowerCase() + "%"));
             }
             return predicate;
-        }, pageable);
+        });
     }
+
 }

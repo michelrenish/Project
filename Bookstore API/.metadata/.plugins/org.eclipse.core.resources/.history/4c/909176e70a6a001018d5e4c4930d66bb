@@ -1,0 +1,88 @@
+package com.bookStoreAPI.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.bookStoreAPI.entity.Author;
+import com.bookStoreAPI.entity.Book;
+import com.bookStoreAPI.exception.AuthorIdNotFoundExeption;
+import com.bookStoreAPI.exception.BookNotFoundExeption;
+import com.bookStoreAPI.repository.AuthorRepository;
+import com.bookStoreAPI.repository.BookRepository;
+
+import jakarta.persistence.criteria.Predicate;
+
+@Service
+public class BookService {
+    private final BookRepository bookRepository;
+    private final AuthorRepository authorRepository;
+    
+
+    public BookService(BookRepository bookRepository ,AuthorRepository authorRepository ) {
+        this.bookRepository = bookRepository;
+        this.authorRepository=authorRepository;
+    }
+
+    public List<Book> getAllBooks() {
+        return bookRepository.findAll();
+    }
+
+    public Optional<Book> getBookById(Long id) {
+    	Optional<Book> book =bookRepository.findById(id);
+    	if(book.isPresent()) {
+        return bookRepository.findById(id);
+    	}
+    	else {
+    		throw new BookNotFoundExeption();
+    	}
+    }
+
+    public Book createBook(Book book) {
+    	Long authorId = book.getAuthor().getId();
+        Author author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new AuthorIdNotFoundExeption());
+        book.setAuthor(author);
+        Book savedBook = bookRepository.save(book);
+        return new Book(
+                savedBook.getId(),
+                savedBook.getTitle(),
+                savedBook.getPrice(),
+                savedBook.getAuthor()
+        );   
+    }
+    public Book updateBook(Long id, Book updatedBook) {
+        return bookRepository.findById(id)
+                .map(book -> {
+                    book.setTitle(updatedBook.getTitle());
+                    book.setPrice(updatedBook.getPrice());
+                    book.setAuthor(updatedBook.getAuthor());
+                    return bookRepository.save(book);
+                })
+                .orElseThrow(() -> new BookNotFoundExeption());
+    }
+
+    public void deleteBook(Long id) {
+        bookRepository.deleteById(id);
+    }
+
+    public Page<Book> getBooksFiltered(String title, String authorName, int page, int size, Sort sort) {
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return bookRepository.findAll((root, query, cb) -> {
+            Predicate predicate = cb.conjunction();
+            if (title != null && !title.isEmpty()) {
+                predicate = cb.and(predicate, cb.like(root.get("title"), "%" + title + "%"));
+            }
+            if (authorName != null && !authorName.isEmpty()) {
+                predicate = cb.and(predicate, cb.like(root.get("author").get("name"), "%" + authorName + "%"));
+            }
+            return predicate;
+        }, pageable);
+    }
+}
